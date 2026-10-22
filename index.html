@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#07080b">
+<title>Huellas · tu Cronología de Google Maps</title>
+<meta name="description" content="Visualiza tu historial de ubicaciones de Google Maps: rutas, mapas de calor, viajes, países y estadísticas. Todo se procesa en tu navegador.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233987e5'/%3E%3Cstop offset='1' stop-color='%23d55181'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%2307080b'/%3E%3Cpath d='M18 44c6-14 10-20 14-20s6 8 14-8' fill='none' stroke='url(%23g)' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='46' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="vendor/maplibre-gl.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app" data-screen="intro">
+  <div id="map" aria-label="Mapa"></div>
+  <div class="map-vignette" aria-hidden="true"></div>
+
+  <!-- ============================================================ PORTADA / IMPORTAR -->
+  <section id="intro" class="screen" aria-labelledby="intro-title">
+    <div class="intro-wrap">
+      <div class="brand brand-lg"><span class="brand-mark" aria-hidden="true"></span><span>Huellas</span></div>
+      <h1 id="intro-title">Toda tu vida, <span class="grad">sobre el mapa.</span></h1>
+      <p class="lead">Importa la Cronología de Google Maps y descubre por dónde has pasado: rutas, mapas de calor, viajes, países, récords y mucho más.</p>
+
+      <div id="drop" class="drop" tabindex="0" role="button" aria-label="Arrastra aquí tu archivo o pulsa para elegirlo">
+        <div class="drop-icon" aria-hidden="true"></div>
+        <div class="drop-title">Arrastra aquí tu <b>Timeline.json</b></div>
+        <div class="drop-sub">o cualquier exportación de Google: <span class="mono">.json</span>, <span class="mono">.zip</span> de Takeout, <span class="mono">.kml</span>, <span class="mono">.gpx</span> o <span class="mono">.csv</span> · varios a la vez</div>
+        <div class="drop-actions">
+          <button class="btn btn-primary" id="pick-files" type="button">Elegir archivos</button>
+          <button class="btn btn-ghost" id="pick-folder" type="button">Elegir carpeta</button>
+        </div>
+        <input type="file" id="file-input" multiple accept=".json,.zip,.kml,.gpx,.csv,application/json,application/zip" hidden>
+        <input type="file" id="folder-input" webkitdirectory multiple hidden>
+      </div>
+
+      <div class="intro-alt">
+        <button class="btn btn-soft" id="resume" type="button" hidden></button>
+        <button class="btn btn-soft" id="demo" type="button"></button>
+      </div>
+
+      <details class="howto" id="howto">
+        <summary>¿Cómo consigo mi archivo de Google Maps?</summary>
+        <div class="howto-tabs" role="tablist">
+          <button role="tab" aria-selected="true" data-howto="android">Android</button>
+          <button role="tab" aria-selected="false" data-howto="ios">iPhone</button>
+          <button role="tab" aria-selected="false" data-howto="takeout">Takeout (antiguo)</button>
+        </div>
+        <div class="howto-body" data-howto-body="android">
+          <ol>
+            <li>Abre <b>Ajustes</b> del móvil → <b>Ubicación</b> → <b>Servicios de ubicación</b> → <b>Cronología</b>.</li>
+            <li>Pulsa <b>Exportar datos de Cronología</b>, confirma con tu huella o PIN y guarda el archivo (se llama <span class="mono">Timeline.json</span>).</li>
+            <li>Pásalo al ordenador (Google Drive, cable USB, correo…) y suéltalo aquí. También puedes abrir esta página en el móvil.</li>
+          </ol>
+          <p class="muted">¿No ves «Cronología» en Ajustes? En Google Maps: tu foto → <b>Tu cronología</b> → ⋮ → <b>Ajustes de ubicación y privacidad</b> → <b>Exportar datos de Cronología</b>.</p>
+        </div>
+        <div class="howto-body" data-howto-body="ios" hidden>
+          <ol>
+            <li>Abre <b>Google Maps</b> → tu foto → <b>Tu cronología</b>.</li>
+            <li>Toca ⋯ → <b>Ajustes de ubicación y privacidad</b> → <b>Exportar datos de Cronología</b>.</li>
+            <li>Guárdalo en Archivos o envíatelo, y suéltalo aquí (suele llamarse <span class="mono">location-history.json</span>).</li>
+          </ol>
+        </div>
+        <div class="howto-body" data-howto-body="takeout" hidden>
+          <ol>
+            <li>Si guardaste una exportación antigua de <b>takeout.google.com</b> (antes de 2024), suelta el <span class="mono">.zip</span> entero o la carpeta <b>Historial de ubicaciones</b>.</li>
+            <li>Se leen <span class="mono">Records.json</span>, <span class="mono">Semantic Location History</span> y <span class="mono">Timeline Edits.json</span>. Puedes mezclarlo con la exportación nueva del móvil.</li>
+          </ol>
+        </div>
+      </details>
+
+      <p class="privacy"><span class="ic-inline" data-icon="shield-check"></span> Todo se procesa en tu navegador. Tus ubicaciones no se suben a ningún sitio.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ CARGANDO -->
+  <section id="loading" class="screen" aria-live="polite">
+    <div class="load-card">
+      <div class="load-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="ring-bg"/><circle cx="60" cy="60" r="52" class="ring-fg" id="ring"/></svg><div class="load-pct" id="load-pct">0%</div></div>
+      <div class="load-title" id="load-title">Leyendo tus datos…</div>
+      <div class="load-msg" id="load-msg"></div>
+      <ol class="load-steps" id="load-steps">
+        <li data-step="read">Leer archivos</li>
+        <li data-step="clean">Limpiar y ordenar</li>
+        <li data-step="geo">Países, ciudades y husos</li>
+        <li data-step="trips">Casa, lugares y viajes</li>
+        <li data-step="map">Preparar el mapa</li>
+      </ol>
+      <button class="btn btn-ghost btn-sm" id="cancel-load" type="button">Cancelar</button>
+    </div>
+  </section>
+
+  <!-- ============================================================ ERROR -->
+  <section id="error" class="screen">
+    <div class="load-card">
+      <div class="err-icon" data-icon="triangle-alert"></div>
+      <div class="load-title">No he podido leer los datos</div>
+      <pre class="err-msg" id="err-msg"></pre>
+      <div class="err-tips">Comprueba que es la exportación de la <b>Cronología</b> (Timeline.json, location-history.json, Records.json o el .zip de Takeout). Si el archivo es muy grande, cierra otras pestañas e inténtalo de nuevo.</div>
+      <button class="btn btn-primary" id="err-back" type="button">Volver</button>
+    </div>
+  </section>
+
+  <!-- ============================================================ PANEL PRINCIPAL -->
+  <header id="topbar" class="glass">
+    <button class="brand brand-sm" id="brand" type="button" title="Volver a la portada"><span class="brand-mark" aria-hidden="true"></span><span>Huellas</span></button>
+    <nav class="modes" id="modes" aria-label="Vistas del mapa"></nav>
+    <div class="top-actions">
+      <div class="picker" id="country-picker">
+        <button class="chip" id="country-btn" type="button" aria-haspopup="listbox"></button>
+        <div class="picker-pop glass" id="country-pop" hidden>
+          <input type="search" id="country-search" placeholder="Buscar país…" autocomplete="off" aria-label="Buscar país">
+          <div class="picker-list" id="country-list" role="listbox"></div>
+        </div>
+      </div>
+      <button class="icon-btn" id="btn-story" type="button" title="Tu resumen (R)" data-icon="sparkles"></button>
+      <button class="icon-btn" id="btn-export" type="button" title="Exportar (E)" data-icon="download"></button>
+      <button class="icon-btn" id="btn-settings" type="button" title="Ajustes" data-icon="settings-2"></button>
+      <button class="icon-btn" id="btn-help" type="button" title="Atajos de teclado (?)" data-icon="keyboard"></button>
+      <button class="icon-btn" id="btn-load" type="button" title="Cargar otros datos" data-icon="upload"></button>
+    </div>
+  </header>
+
+  <aside id="panel" class="glass panel" aria-label="Estadísticas">
+    <div class="panel-head">
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <button class="icon-btn icon-btn-sm panel-toggle" id="panel-toggle" type="button" title="Plegar panel" data-icon="chevron-left"></button>
+    </div>
+    <div class="panel-scope" id="scope"></div>
+    <div class="panel-body" id="panel-body"></div>
+  </aside>
+
+  <aside id="detail" class="glass panel panel-right" aria-label="Detalle" hidden>
+    <div class="detail-body" id="detail-body"></div>
+  </aside>
+
+  <div id="legend" class="glass legend"></div>
+  <div id="anim-hud" class="anim-hud" hidden>
+    <div class="hud-date" id="hud-date"></div>
+    <div class="hud-time" id="hud-time"></div>
+    <div class="hud-where" id="hud-where"></div>
+  </div>
+
+  <footer id="timeline" class="glass">
+    <div class="tl-controls">
+      <button class="icon-btn icon-btn-play" id="play" type="button" title="Reproducir (espacio)" data-icon="play"></button>
+      <button class="chip chip-sm" id="speed" type="button" title="Velocidad"></button>
+      <button class="icon-btn icon-btn-sm" id="follow" type="button" title="La cámara te sigue" data-icon="locate-fixed" aria-pressed="false"></button>
+    </div>
+    <div class="tl-main">
+      <div class="tl-top">
+        <div class="tl-range" id="tl-range"></div>
+        <div class="tl-presets" id="tl-presets"></div>
+      </div>
+      <div class="tl-canvas-wrap" id="tl-wrap">
+        <canvas id="tl-canvas"></canvas>
+      </div>
+    </div>
+  </footer>
+
+  <div id="tip" class="tip" role="tooltip" hidden></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- ============================================================ RESUMEN (historia) -->
+  <section id="story" class="story" hidden aria-label="Tu resumen">
+    <div class="story-bg"></div>
+    <div class="story-top">
+      <div class="story-bars" id="story-bars"></div>
+      <div class="story-tools">
+        <select id="story-year" aria-label="Periodo del resumen"></select>
+        <button class="icon-btn" id="story-close" type="button" title="Cerrar (Esc)" data-icon="x"></button>
+      </div>
+    </div>
+    <div class="story-stage" id="story-stage"></div>
+    <button class="story-nav story-prev" id="story-prev" type="button" aria-label="Anterior" data-icon="chevron-left"></button>
+    <button class="story-nav story-next" id="story-next" type="button" aria-label="Siguiente" data-icon="chevron-right"></button>
+  </section>
+
+  <!-- ============================================================ DIÁLOGOS -->
+  <dialog id="dlg-settings" class="dlg glass">
+    <form method="dialog" class="dlg-inner">
+      <div class="dlg-head"><h2>Ajustes</h2><button class="icon-btn icon-btn-sm" value="close" data-icon="x" title="Cerrar"></button></div>
+      <div class="dlg-body" id="settings-body"></div>
+    </form>
+  </dialog>
+  <dialog id="dlg-export" class="dlg glass">
+    <form method="dialog" class="dlg-inner">
+      <div class="dlg-head"><h2>Exportar</h2><button class="icon-btn icon-btn-sm" value="close" data-icon="x" title="Cerrar"></button></div>
+      <div class="dlg-body" id="export-body"></div>
+    </form>
+  </dialog>
+  <dialog id="dlg-help" class="dlg glass">
+    <form method="dialog" class="dlg-inner">
+      <div class="dlg-head"><h2>Atajos y trucos</h2><button class="icon-btn icon-btn-sm" value="close" data-icon="x" title="Cerrar"></button></div>
+      <div class="dlg-body">
+        <dl class="keys">
+          <dt><kbd>1</kbd>…<kbd>6</kbd></dt><dd>Cambiar de vista (rutas, calor, 3D, animación, viajes, países)</dd>
+          <dt><kbd>Espacio</kbd></dt><dd>Reproducir o pausar la animación</dd>
+          <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Día anterior / siguiente (con un día abierto)</dd>
+          <dt><kbd>R</kbd></dt><dd>Tu resumen animado</dd>
+          <dt><kbd>E</kbd></dt><dd>Exportar imagen o datos</dd>
+          <dt><kbd>F</kbd></dt><dd>Encuadrar todo lo filtrado</dd>
+          <dt><kbd>G</kbd></dt><dd>Globo terráqueo / mapa plano</dd>
+          <dt><kbd>Esc</kbd></dt><dd>Cerrar el detalle o quitar el filtro de país</dd>
+        </dl>
+        <ul class="tips">
+          <li>Arrastra sobre la barra de tiempo para elegir fechas; arrastra la selección para moverla; doble clic para ver todo.</li>
+          <li>Clic en un día de la barra o del calendario: ves su itinerario completo.</li>
+          <li>Clic en una ruta o un lugar del mapa para ver su detalle. Clic derecho y arrastrar para inclinar el mapa.</li>
+        </ul>
+      </div>
+    </form>
+  </dialog>
+</div>
+
+<noscript><div class="noscript">Huellas necesita JavaScript activado.</div></noscript>
+
+<script src="vendor/maplibre-gl.js"></script>
+<script src="vendor/deck.min.js"></script>
+<script src="data/countries.js"></script>
+<script src="data/cities.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/util.js"></script>
+<script src="js/worker.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/store.js"></script>
+<script src="js/data.js"></script>
+<script src="js/demo.js"></script>
+<script src="js/map.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/panels.js"></script>
+<script src="js/story.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

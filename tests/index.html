@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Huellas · pruebas</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font: 14px/1.5 system-ui, sans-serif; background: #0d0d0d; color: #f0efec; margin: 24px; }
+  h1 { font-size: 18px; }
+  .t { padding: 6px 10px; border-radius: 6px; margin: 4px 0; background: #1a1a19; }
+  .ok { border-left: 4px solid #0ca30c; }
+  .ko { border-left: 4px solid #d03b3b; }
+  .t small { color: #c3c2b7; display: block; white-space: pre-wrap; }
+  button { font: inherit; padding: 6px 12px; margin-right: 8px; }
+</style>
+</head>
+<body>
+<h1>Huellas · pruebas del lector</h1>
+<p><button id="run">Ejecutar pruebas</button><button id="big">Prueba de 700 MB</button> <span id="sum"></span></p>
+<div id="out"></div>
+<script src="../data/countries.js"></script>
+<script src="../data/cities.js"></script>
+<script src="../js/worker.js"></script>
+<script src="../js/engine.js"></script>
+<script src="../js/demo.js"></script>
+<script src="tests.js"></script>
+</body>
+</html>
