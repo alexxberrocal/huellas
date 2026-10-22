@@ -487,7 +487,7 @@ kbd { display: inline-block; min-width: 24px; padding: 2px 7px; border-radius: 6
   .picker-pop { position: fixed; left: 8px; right: 8px; top: 120px; width: auto; }
   .panel { top: auto; bottom: calc(var(--tl-h) + var(--gap) * 2); left: var(--gap); right: var(--gap); width: auto; height: min(46vh, 430px); transition: height .35s var(--ease), transform .4s var(--ease), opacity .4s; }
   #app[data-panel="closed"] #panel { transform: none; opacity: 1; pointer-events: auto; height: 50px; }
-  #app[data-panel="closed"] .panel-open { display: none; }
+  #app[data-screen="app"][data-panel="closed"] .panel-open { display: none; }
   #app[data-panel="closed"] .panel-scope, #app[data-panel="closed"] .panel-body { display: none; }
   .panel-toggle .ic { transform: rotate(-90deg); }
   #app[data-panel="closed"] .panel-toggle .ic { transform: rotate(90deg); }
