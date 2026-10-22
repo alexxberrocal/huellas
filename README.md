@@ -6,6 +6,11 @@ Todo se procesa **en tu navegador**: tus ubicaciones no se suben a ningún sitio
 
 ## Cómo se abre
 
+**En la web (ordenador o móvil):** <https://alexxberrocal.github.io/huellas/>
+En el móvil: exporta la Cronología, abre esa dirección, pulsa **Elegir archivos** y escoge el `Timeline.json` (normalmente en *Descargas*). El archivo no se sube a ningún sitio: la página solo se descarga y todo se procesa en tu teléfono.
+
+**En local, sin internet para la app:**
+
 1. Haz **doble clic en `index.html`** (mejor con Chrome o Edge actualizados; Firefox y Safari también sirven).
 2. Arrastra tu archivo a la página, o pulsa **Elegir archivos** / **Elegir carpeta**.
 3. La primera vez tarda unos segundos (un archivo de 300 MB, unos 4 s). Después queda guardado en ese navegador y la próxima vez basta con pulsar **Continuar con tus datos**.
